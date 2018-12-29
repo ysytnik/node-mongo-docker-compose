@@ -1,0 +1,188 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Todo Crud Application</title>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+
+    <!-- Optional theme -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+      integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+      crossorigin="anonymous"
+    />
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+      integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+          <form id="form">
+            <div class="form-group">
+              <label for="todo">Todo</label>
+              <input
+                type="text"
+                class="form-control"
+                id="todoUserInput"
+                placeholder="Todo"
+              />
+              <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+          </form>
+        </div>
+        <div class="col-lg-2"></div>
+      </div>
+      <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8"><ul class="list-group" id="display"></ul></div>
+        <div class="col-lg-2"></div>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(() => {
+        const display = $("#display");
+        const form = $("#form");
+        const todoUserInput = $("#todoUserInput");
+
+        const getAll = () => {
+          fetch("/getAll", { method: "get" })
+            .then(response => {
+              return response.json();
+            })
+            .then(data => {
+              displayAll(data);
+            });
+        };
+
+        getAll();
+
+        form.submit(e => {
+          e.preventDefault();
+          fetch("/", {
+            method: "post",
+            body: JSON.stringify({ todo: todoUserInput.val() }),
+            headers: { "Content-Type": "application/json; charset=utf-8" }
+          })
+            .then(response => {
+              return response.json();
+            })
+            .then(data => {
+              if ((data.result.ok === 1) & (data.result.n === 1)) {
+                let ids = buildIds(data.document);
+                display.append(buildTemplate(data.document, ids));
+                editTodo(data.document, ids.todoID, ids.editID);
+                deleteTodo(data.document, ids.listItemID, ids.deleteID);
+              }
+            });
+
+          resetTodoInput();
+        });
+
+        const deleteTodo = (todo, listItemID, deleteID) => {
+          let deleteBtn = $(`#${deleteID}`);
+
+          deleteBtn.click(() => {
+            fetch("/" + todo._id, {
+              method: "delete"
+            })
+              .then(response => {
+                return response.json();
+              })
+              .then(data => {
+                if (data.ok === 1) {
+                  $(`#${listItemID}`).remove();
+                }
+              });
+          });
+        };
+
+        const editTodo = (todo, todoID, editID) => {
+          let editBtn = $(`#${editID}`);
+          editBtn.click(() => {
+            fetch(`/${todo._id}`, {
+              method: "put",
+              body: JSON.stringify({ todo: todoUserInput.val() }),
+              headers: { "Content-Type": "application/json; charset=utf-8" }
+            })
+              .then(response => {
+                return response.json();
+              })
+              .then(data => {
+                let todoIndex = $(`#${todoID}`);
+                todoIndex.html(data.value.todo);
+              });
+          });
+        };
+
+        const resetTodoInput = () => {
+          todoUserInput.val("");
+        };
+
+        const buildIds = todo => {
+          return {
+            editID: "edit_" + todo._id,
+            deleteID: "delete_" + todo._id,
+            listItemID: "listItem_" + todo._id,
+            todoID: "todo_" + todo._id
+          };
+        };
+
+        const buildTemplate = (todo, ids) => {
+          return `
+            <li class="list-group-item" id="${ids.listItemID}">
+              <div class="row">
+                <div class="col-md-4" id="${ids.todoID}">${todo.todo}</div>
+                <div class="col-md-4></div>
+                <div class="col-md-4 text-right">
+                  <button type="button" class="btn btn-secondary" id="${
+                    ids.editID
+                  }">Edit</button>
+                    <button type="button" class="btn btn-danger" id="${
+                      ids.deleteID
+                    }">Delete</button>
+                  </div>
+              </div>
+            </li>
+          `;
+        };
+
+        const displayAll = data => {
+          data.forEach(todo => {
+            let ids = buildIds(todo);
+            display.append(buildTemplate(todo, ids));
+            editTodo(todo, ids.todoID, ids.editID);
+            deleteTodo(todo, ids.listItemID, ids.deleteID);
+          });
+        };
+      });
+    </script>
+  </body>
+</html>
