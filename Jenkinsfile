@@ -1,9 +1,9 @@
 pipeline {
-    agent any //  agent { docker { image 'node:6.3' } }
+    agent { docker { image 'node:8' } }
     stages {
         stage('build') {
             steps {
-              sh 'docker-compose up'
+                sh 'npm --version'
             }
         }
     }
