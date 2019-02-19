@@ -63,8 +63,8 @@ db.connect(err => {
     console.log("unable to connect to database", err);
     process.exit(1);
   } else {
-    app.listen(3000, () => {
-      console.log("connected to the database, app is listening on port 3000");
+    app.listen(80, () => {
+      console.log("connected to the database, app is listening on port 80");
     });
   }
 });
