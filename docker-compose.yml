@@ -8,11 +8,14 @@ services:
     ports:
       - "27017:27017"
   web:
-    container_name: web
-    build: .
+    container_name: webnode
+    image: webnode
+    build: ./code
     ports:
-      -  "80:80"
+      -  "8080:80"
     links:
       - mongo
+    environment:
+      MONGO : mongo  
     command: npm start
  

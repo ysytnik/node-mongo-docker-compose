@@ -3,7 +3,7 @@ const ObjectID = require("mongodb").ObjectID;
 const dbname = "crud_mongodb";
 //const url = "mongodb://mongo:27017";
 //const url = "mongodb://0.0.0.0:27017"
-const url = "mongodb://10.244.1.4:27017"
+const url = "mongodb://MONGO:27017"
 //const url = "mongodb://$GET_HOST_FROM:27017"
 const mongoOptions = { useNewUrlParser: true };
 

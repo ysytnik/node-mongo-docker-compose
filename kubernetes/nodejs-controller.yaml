@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nodejs
+  labels:
+    name: nodejs
+spec:
+  replicas: 3
+  selector:
+    name: nodejs
+  template:
+    metadata:
+      labels:
+        name: nodejs
+    spec:
+      containers:
+      - name: nodejs
+        image: aksys.azurecr.io/ysytnik/web:latest
+        ports: 
+        - containerPort: 80
+      imagePullSecrets: 
+      - name: aksys  
+          #ienv:
+          #- name: GET_HOSTS_FROM
+          #value: dns
+          # If your cluster config does not include a dns service, then to
+          # instead access environment variables to find service host
+          # info, comment out the 'value: dns' line above, and uncomment the
+          # line below.
+          # value: env
+          #ports:
+          # - containerPort: 3000
